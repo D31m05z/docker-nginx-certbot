@@ -1,0 +1,43 @@
+version: '3'
+services:
+
+  nginx:
+    image: nginx:1.15-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./public_html:/var/www/public_html
+      - ./nginx:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    environment:
+      - MYSQL_DATABASE=dbname
+      - MYSQL_USER=dbuser
+      - MYSQL_PASSWORD=654321
+      - MYSQL_HOST=db
+    depends_on:
+      - db
+
+  certbot:
+     image: certbot/certbot:latest
+     command: certonly --dry-run --webroot --webroot-path=/var/www/certbot --email e@mail.com --agree-tos --no-eff-email -d domain.com
+     volumes:
+       - ./certbot/conf/:/etc/letsencrypt
+       - ./certbot/logs/:/var/log/letsencrypt
+       - ./certbot/www:/var/www/certbot
+
+  db:
+    image: mysql:5.7
+    ports:
+      - "6603:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=654321
+      - MYSQL_USER=dbuser
+      - MYSQL_PASSWORD=654321
+      - MYSQL_DATABASE=dbname
+    volumes:
+      - "mysql_data:/var/lib/mysql"
+
+volumes:
+  mysql_data: { driver: local }

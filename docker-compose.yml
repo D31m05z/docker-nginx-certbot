@@ -2,13 +2,15 @@ version: '3'
 services:
 
   nginx:
-    image: nginx:1.15-alpine
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./public_html:/var/www/public_html
-      - ./nginx:/etc/nginx/conf.d
+      - ./public:/var/www/public
+      - ./nginx/conf.d:/etc/nginx/conf.d
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     environment:

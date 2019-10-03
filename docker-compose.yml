@@ -12,30 +12,17 @@ services:
       # - ./nginx:/etc/nginx/conf.d
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    environment:
-      - MYSQL_DATABASE=dbname
-      - MYSQL_USER=dbuser
-      - MYSQL_PASSWORD=654321
-      - MYSQL_HOST=db
-    depends_on:
-      - db
     links:
       - php
 
   php:
-    image: php:7-fpm-alpine
+    build:
+      context: .
+      dockerfile: php/Dockerfile
+    links:
+      - db
     volumes:
       - .:/var/www
-
-  certbot:
-     image: certbot/certbot:latest
-     command: certonly --dry-run --webroot --webroot-path=/var/www/certbot --email e@mail.com --agree-tos --no-eff-email -d domain.com
-     volumes:
-       - ./certbot/conf/:/etc/letsencrypt
-       - ./certbot/logs/:/var/log/letsencrypt
-       - ./certbot/www:/var/www/certbot
-     depends_on:
-       - nginx
 
   db:
     image: mysql:5.7
@@ -48,6 +35,16 @@ services:
       - MYSQL_DATABASE=dbname
     volumes:
       - "mysql_data:/var/lib/mysql"
+
+  certbot:
+     image: certbot/certbot:latest
+     command: certonly --dry-run --webroot --webroot-path=/var/www/certbot --email e@mail.com --agree-tos --no-eff-email -d domain.com
+     volumes:
+       - ./certbot/conf/:/etc/letsencrypt
+       - ./certbot/logs/:/var/log/letsencrypt
+       - ./certbot/www:/var/www/certbot
+     depends_on:
+       - nginx
 
 volumes:
   mysql_data: { driver: local }

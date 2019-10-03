@@ -2,15 +2,14 @@ version: '3'
 services:
 
   nginx:
-    build:
-      context: .
-      dockerfile: nginx/Dockerfile
+    image: nginx:latest
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./public:/var/www/public
-      - ./nginx/conf.d:/etc/nginx/conf.d
+      - .:/var/www
+      - ./nginx.localhost:/etc/nginx/conf.d
+      # - ./nginx:/etc/nginx/conf.d
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     environment:
@@ -20,6 +19,13 @@ services:
       - MYSQL_HOST=db
     depends_on:
       - db
+    links:
+      - php
+
+  php:
+    image: php:7-fpm-alpine
+    volumes:
+      - .:/var/www
 
   certbot:
      image: certbot/certbot:latest
@@ -28,6 +34,8 @@ services:
        - ./certbot/conf/:/etc/letsencrypt
        - ./certbot/logs/:/var/log/letsencrypt
        - ./certbot/www:/var/www/certbot
+     depends_on:
+       - nginx
 
   db:
     image: mysql:5.7
